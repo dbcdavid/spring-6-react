@@ -1,7 +1,9 @@
 package classes.spring6reactive.bootstrap;
 
 import classes.spring6reactive.domain.Beer;
+import classes.spring6reactive.domain.Customer;
 import classes.spring6reactive.repositories.BeerRepository;
+import classes.spring6reactive.repositories.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -14,13 +16,47 @@ import java.time.LocalDateTime;
 public class BootStrapData implements CommandLineRunner {
 
     private final BeerRepository beerRepository;
+    private final CustomerRepository customerRepository;
 
     @Override
     public void run(String... args) throws Exception {
         loadBeerData();
+        loadCustomerData();
 
         beerRepository.count().subscribe(count -> {
-            System.out.println("Count is: " + count);
+            System.out.println("Beer count is: " + count);
+        });
+
+        customerRepository.count().subscribe(count -> {
+            System.out.println("Customer count is: " + count);
+        });
+    }
+
+    private void loadCustomerData() {
+        customerRepository.count().subscribe(count -> {
+            if (count == 0) {
+                Customer customer1 = Customer.builder()
+                        .customerName("John")
+                        .lastModifiedDate(LocalDateTime.now())
+                        .createdDate(LocalDateTime.now())
+                        .build();
+
+                Customer customer2 = Customer.builder()
+                        .customerName("Daenerys")
+                        .lastModifiedDate(LocalDateTime.now())
+                        .createdDate(LocalDateTime.now())
+                        .build();
+
+                Customer customer3 = Customer.builder()
+                        .customerName("Tyrion")
+                        .lastModifiedDate(LocalDateTime.now())
+                        .createdDate(LocalDateTime.now())
+                        .build();
+
+                customerRepository.save(customer1).subscribe();
+                customerRepository.save(customer2).subscribe();
+                customerRepository.save(customer3).subscribe();
+            }
         });
     }
 
