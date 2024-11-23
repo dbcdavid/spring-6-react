@@ -1,6 +1,5 @@
 package classes.spring6reactive.controllers;
 
-import classes.spring6reactive.domain.Customer;
 import classes.spring6reactive.model.CustomerDTO;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -30,7 +29,38 @@ class CustomerControllerTest {
     }
 
     @Test
+    void testUpdateCustomerNotFound() {
+        webClient.put().uri(CustomerController.CUSTOMER_PATH_ID, -1)
+                .body(Mono.just(getTestCustomer()), CustomerDTO.class)
+                .header("Content-type", "application/json")
+                .exchange()
+                .expectStatus().isNotFound();
+    }
+
+    @Test
     @Order(2)
+    void testUpdateCustomerBadRequest() {
+        CustomerDTO customerDTO = getTestCustomer();
+        customerDTO.setCustomerName("");
+
+        webClient.put().uri(CustomerController.CUSTOMER_PATH_ID, 1)
+                .body(Mono.just(customerDTO), CustomerDTO.class)
+                .header("Content-type", "application/json")
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
+
+    @Test
+    void testPatchCustomerNotFound() {
+        webClient.patch().uri(CustomerController.CUSTOMER_PATH_ID, -1)
+                .body(Mono.just(getTestCustomer()), CustomerDTO.class)
+                .header("Content-type", "application/json")
+                .exchange()
+                .expectStatus().isNotFound();
+    }
+
+    @Test
+    @Order(3)
     void testListCustomers(){
         webClient.get().uri(CustomerController.CUSTOMER_PATH)
                 .exchange()
@@ -40,7 +70,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    @Order(3)
+    @Order(4)
     void testCreateCustomer() {
         webClient.post().uri(CustomerController.CUSTOMER_PATH)
                 .body(Mono.just(getTestCustomer()), CustomerDTO.class)
@@ -51,13 +81,32 @@ class CustomerControllerTest {
     }
 
     @Test
-    @Order(4)
+    void testCreateCustomerBadRequest() {
+        CustomerDTO customerDTO = getTestCustomer();
+        customerDTO.setCustomerName("");
+
+        webClient.post().uri(CustomerController.CUSTOMER_PATH)
+                .body(Mono.just(customerDTO), CustomerDTO.class)
+                .header("Content-type", "application/json")
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
+
+    @Test
+    @Order(5)
     void testGetCustomerById(){
         webClient.get().uri(CustomerController.CUSTOMER_PATH_ID, 1)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().valueEquals("Content-type", "application/json")
                 .expectBody(CustomerDTO.class);
+    }
+
+    @Test
+    void testGetCustomerByIdNotFound(){
+        webClient.get().uri(CustomerController.CUSTOMER_PATH_ID, -1)
+                .exchange()
+                .expectStatus().isNotFound();
     }
 
     @Test
@@ -69,8 +118,16 @@ class CustomerControllerTest {
                 .expectStatus().isNoContent();
     }
 
-    Customer getTestCustomer(){
-        return Customer.builder()
+    @Test
+    void testDeleteCustomerNotFound() {
+        webClient.delete().uri(CustomerController.CUSTOMER_PATH_ID, -1)
+                .header("Content-type", "application/json")
+                .exchange()
+                .expectStatus().isNotFound();
+    }
+
+    CustomerDTO getTestCustomer(){
+        return CustomerDTO.builder()
                 .customerName("John Doe")
                 .build();
     }
